@@ -22,10 +22,14 @@ jobs:
           # Fetch the base branch (qa) and the pull request branch
           git fetch origin qa
           git fetch origin ${{ github.head_ref }}
-
-          # Ensure both branches are checked out
+          
+          # Ensure the branch is checked out
           git checkout ${{ github.head_ref }}
           
+          # Show the status and the last few commits
+          git status
+          git log --oneline --decorate -n 5
+
           # Check if the team-provider-info.json has been modified
           if git diff --name-only origin/qa...${{ github.head_ref }} | grep 'amplify/team-provider-info.json'; then
             echo "team-provider-info.json has been modified."
