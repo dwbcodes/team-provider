@@ -26,15 +26,16 @@ jobs:
           else
             echo "team-provider-info.json has NOT been modified."
             echo "file-modified=false" >> $GITHUB_ENV
-          fi  # This 'fi' closes the if block
+          fi
 
       - name: Check if specific label exists
         id: label-check
         uses: actions/github-script@v6
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const labelName = "allow-modifications";  // Specify the label name
-            const prLabels = await github.issues.listLabelsOnIssue({
+            const prLabels = await github.rest.issues.listLabelsOnIssue({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number
@@ -55,3 +56,4 @@ jobs:
         run: |
           echo "Error: Modifications to team-provider-info.json are not allowed."
           exit 1
+
