@@ -6,6 +6,8 @@ on:
       - 'amplify/team-provider-info.json'
     branches:
       - qa
+    types:
+      - labeled
 
 jobs:
   check-files:
