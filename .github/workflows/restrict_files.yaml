@@ -17,18 +17,15 @@ jobs:
       - name: Check for modifications to team-provider-info.json
         id: check_changes
         run: |
-          # Pull request branch
           echo "Pull request branch is: ${{ github.head_ref }}"
           echo "Base branch is: ${{ github.event.pull_request.base.ref }}"
 
-          # Fetch the base branch and the pull request branch
           git fetch origin ${{ github.event.pull_request.base.ref }}
           git fetch origin ${{ github.head_ref }}
 
-          # Ensure the branch is checked out
           git checkout ${{ github.head_ref }}
 
-          # Check if the team-provider-info.json has been modified
+          # Check for modifications to the specific file
           if git diff --name-only origin/${{ github.event.pull_request.base.ref }}...${{ github.head_ref }} | grep 'amplify/team-provider-info.json'; then
             echo "team-provider-info.json has been modified."
             echo "file-modified=true" >> $GITHUB_ENV
@@ -39,15 +36,11 @@ jobs:
 
       - name: Check for specific label
         id: check_label
-        if: env.file-modified == 'true'  # Only run this step if the file was modified
+        if: env.file-modified == 'true'
         run: |
           echo "Checking for specific labels on the pull request..."
-          
-          # Access the labels directly from the GitHub context
-          labels="${{ toJson(github.event.pull_request.labels) }}"
-          
-          # Check for the 'allow-modifications' label
-          if echo "$labels" | jq -r '.[].name' | grep -q "allow-modifications"; then
+          labels=$(echo "${{ toJson(github.event.pull_request.labels) }}" | jq -r '.[].name')
+          if echo "$labels" | grep -q "allow-modifications"; then
             echo "Label 'allow-modifications' is present."
             echo "allow-modifications=true" >> $GITHUB_ENV
           else
@@ -55,14 +48,13 @@ jobs:
             echo "allow-modifications=false" >> $GITHUB_ENV
           fi
 
-      - name: Debugging Print Labels
-        if: env.file-modified == 'true'  # Only run if the file was modified
+      - name: "Debugging: Print Labels"
+        if: env.file-modified == 'true'
         run: |
           echo "Labels on the PR:"
-          labels="${{ toJson(github.event.pull_request.labels) }}"
-          echo "$labels" | jq -r '.[].name'
+          echo "${{ toJson(github.event.pull_request.labels) }}" | jq -r '.[].name'
 
-      - name: Fail if team-provider-info.json was modified and no specific label is present
+      - name: "Fail if team-provider-info.json was modified and no specific label is present"
         if: env.file-modified == 'true' && env.allow-modifications == 'false'
         run: |
           echo "Error: Modifications to team-provider-info.json are not allowed without the 'allow-modifications' label."
