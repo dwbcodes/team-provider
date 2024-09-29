@@ -12,18 +12,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Fetch full history
-
-      - name: Fetch base branch
-        run: |
-          # Fetch the base branch (qa)
-          git fetch origin qa
+          fetch-depth: 0  # Fetch full history to access all branches
 
       - name: Check for modifications to team-provider-info.json
         run: |
           # Pull request branch
           echo "Pull request branch is: ${{ github.head_ref }}"
-          
+
+          # Ensure the base branch is available
+          git fetch origin qa
+
           # Check if the team-provider-info.json has been modified
           if git diff --name-only origin/qa...${{ github.head_ref }} | grep 'amplify/team-provider-info.json'; then
             echo "team-provider-info.json has been modified."
