@@ -5,9 +5,9 @@ on:
     branches:
       - qa
   pull_request_target:
-  types:
-    - labeled
-    - unlabeled
+    types:
+      - labeled
+      - unlabeled
 
 jobs:
   check-files:
