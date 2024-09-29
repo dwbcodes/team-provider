@@ -2,9 +2,11 @@ name: Check for team-provider-info.json changes on a specific branch.
 
 on:
   pull_request:
+    types: [labeled]
+  push:
     paths:
       - 'amplify/team-provider-info.jsona'
-    types: [labeled]
+
 jobs:
   check-files:
     runs-on: ubuntu-latest
