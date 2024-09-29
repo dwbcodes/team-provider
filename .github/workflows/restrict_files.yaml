@@ -40,10 +40,14 @@ jobs:
         run: |
           echo "Checking for specific labels on the pull request..."
           allow_modifications=false
-          
+
+          # Convert the labels JSON to a format we can work with
+          labels=$(echo '${{ toJson(github.event.pull_request.labels) }}' | jq -r '.[].name')
+          echo "Labels found: $labels"
+
           # Check if 'allow-modifications' label is present
-          for label in "${{ toJson(github.event.pull_request.labels) }}"; do
-            if [[ "$label" == *"allow-modifications"* ]]; then
+          for label in $labels; do
+            if [[ "$label" == "allow-modifications" ]]; then
               allow_modifications=true
               break
             fi
@@ -61,7 +65,7 @@ jobs:
         if: env.file-modified == 'true'
         run: |
           echo "Labels on the PR:"
-          echo "${{ toJson(github.event.pull_request.labels) }}" | jq -r '.[].name'
+          echo '${{ toJson(github.event.pull_request.labels) }}' | jq -r '.[].name'
 
       - name: "Fail if team-provider-info.json was modified and no specific label is present"
         if: env.file-modified == 'true' && env.allow-modifications == 'false'
