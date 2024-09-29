@@ -4,8 +4,9 @@ on:
   pull_request:
     paths:
       - 'amplify/team-provider-info.jsona'
-    branches:
-      - qa
+    types:
+      - labeled
+        unlabeled
 
 jobs:
   check-files:
