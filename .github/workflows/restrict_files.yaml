@@ -2,7 +2,6 @@ name: Check for team-provider-info.json changes
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
     branches:
       - qa
 
@@ -27,10 +26,32 @@ jobs:
           else
             echo "team-provider-info.json has NOT been modified."
             echo "file-modified=false" >> $GITHUB_ENV
-          fi
+          fi  # This 'fi' closes the if block
 
-      - name: Fail if team-provider-info.json was modified
-        if: env.file-modified == 'true'
+      - name: Check if specific label exists
+        id: label-check
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const labelName = "allow-modifications";  // Specify the label name
+            const prLabels = await github.issues.listLabelsOnIssue({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number
+            });
+
+            const hasLabel = prLabels.data.some(label => label.name === labelName);
+            if (hasLabel) {
+              console.log(`Label "${labelName}" found on PR.`);
+              return { labelPresent: true };
+            } else {
+              console.log(`Label "${labelName}" not found on PR.`);
+              return { labelPresent: false };
+            }
+          result-encoding: json
+
+      - name: Fail if team-provider-info.json was modified and label is missing
+        if: env.file-modified == 'true' && steps.label-check.outputs.labelPresent == 'false'
         run: |
           echo "Error: Modifications to team-provider-info.json are not allowed."
           exit 1
