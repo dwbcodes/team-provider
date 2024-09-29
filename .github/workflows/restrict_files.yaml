@@ -1,4 +1,4 @@
-name: Check for team-provider-info.json changes
+name: Check for team-provider-info.json changes on a specific branch.
 
 on:
   pull_request:
@@ -22,7 +22,6 @@ jobs:
 
           git fetch origin ${{ github.event.pull_request.base.ref }}
           git fetch origin ${{ github.head_ref }}
-
           git checkout ${{ github.head_ref }}
 
           # Check for modifications to the specific file
@@ -61,15 +60,8 @@ jobs:
             echo "allow-modifications=false" >> $GITHUB_ENV
           fi
 
-      - name: "Debugging: Print Labels"
-        if: env.file-modified == 'true'
-        run: |
-          echo "Labels on the PR:"
-          echo '${{ toJson(github.event.pull_request.labels) }}' | jq -r '.[].name'
-
       - name: "Fail if team-provider-info.json was modified and no specific label is present"
         if: env.file-modified == 'true' && env.allow-modifications == 'false'
         run: |
           echo "Error: Modifications to team-provider-info.json are not allowed without the 'allow-modifications' label."
           exit 1
-
