@@ -4,6 +4,10 @@ on:
   pull_request:
     branches:
       - qa
+  pull_request_target:
+  types:
+    - labeled
+    - unlabeled
 
 jobs:
   check-files:
