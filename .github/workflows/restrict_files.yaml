@@ -5,6 +5,7 @@ on:
     types: 
       - labeled
         unlabeled
+  pull_request:
     branches:
       - qa
 
