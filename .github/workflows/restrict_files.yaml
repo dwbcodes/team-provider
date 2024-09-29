@@ -55,7 +55,7 @@ jobs:
             echo "allow-modifications=false" >> $GITHUB_ENV
           fi
 
-      - name: Debugging: Print Labels
+      - name: Debugging Print Labels
         if: env.file-modified == 'true'  # Only run if the file was modified
         run: |
           echo "Labels on the PR:"
