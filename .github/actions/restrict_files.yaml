@@ -1,0 +1,20 @@
+name: Prevent Restricted Files Commit
+
+on:
+  push:
+    branches:
+      - qa
+ 
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Check for restricted files
+        run: |
+          if git ls-tree -r HEAD --name-only | grep 'amplify/team-provider-info.json'; then
+            echo "Error: 'amplify/team-provider-info.json' is not allowed to be committed to this branch."
+            exit 1
+          fi
