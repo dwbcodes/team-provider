@@ -39,10 +39,15 @@ jobs:
 
       - name: Check for specific label
         id: check_label
+        if: env.file-modified == 'true'  # Only run this step if the file was modified
         run: |
           echo "Checking for specific labels on the pull request..."
-          labels=$(echo "${{ github.event.pull_request.labels }}" | jq -r '.[].name')
-          if echo "$labels" | grep -q "allow-modifications"; then
+          
+          # Access the labels directly from the GitHub context
+          labels="${{ toJson(github.event.pull_request.labels) }}"
+          
+          # Check for the 'allow-modifications' label
+          if echo "$labels" | jq -r '.[].name' | grep -q "allow-modifications"; then
             echo "Label 'allow-modifications' is present."
             echo "allow-modifications=true" >> $GITHUB_ENV
           else
