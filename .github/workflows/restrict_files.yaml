@@ -2,10 +2,11 @@ name: Check for team-provider-info.json changes on a specific branch.
 
 on:
   pull_request:
-    paths:
-      - 'amplify/team-provider-info.json'
     types:
       - labeled
+  push:
+    paths:
+      - 'amplify/team-provider-info.json'
 
 jobs:
   check-files:
