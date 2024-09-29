@@ -39,8 +39,17 @@ jobs:
         if: env.file-modified == 'true'
         run: |
           echo "Checking for specific labels on the pull request..."
-          # Check for the 'allow-modifications' label directly
-          if [[ "${{ github.event.pull_request.labels.name }}" == *"allow-modifications"* ]]; then
+          allow_modifications=false
+          
+          # Check if 'allow-modifications' label is present
+          for label in "${{ toJson(github.event.pull_request.labels) }}"; do
+            if [[ "$label" == *"allow-modifications"* ]]; then
+              allow_modifications=true
+              break
+            fi
+          done
+
+          if [ "$allow_modifications" = true ]; then
             echo "Label 'allow-modifications' is present."
             echo "allow-modifications=true" >> $GITHUB_ENV
           else
