@@ -4,9 +4,14 @@ on:
   pull_request:
     types:
       - labeled
-  push:
+        unlabeled
+        opened
+        synchronize
+
     paths:
       - 'amplify/team-provider-info.json'
+    branches:
+      - qa
 
 jobs:
   check-files:
