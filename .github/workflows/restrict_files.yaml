@@ -37,7 +37,7 @@ jobs:
             echo "file-modified=false" >> $GITHUB_ENV
           fi
 
-      - name: Debugging: Check PR Labels
+      - name: Debugging Check PR Labels
         run: |
           echo "Labels on the pull request:"
           echo "${{ toJson(github.event.pull_request.labels) }}"
