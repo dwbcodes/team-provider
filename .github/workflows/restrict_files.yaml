@@ -19,8 +19,9 @@ jobs:
           # Pull request branch
           echo "Pull request branch is: ${{ github.head_ref }}"
 
-          # Ensure the base branch is available
+          # Ensure both branches are available
           git fetch origin qa
+          git fetch origin ${{ github.head_ref }}  # Fetch the PR branch
 
           # Check if the team-provider-info.json has been modified
           if git diff --name-only origin/qa...${{ github.head_ref }} | grep 'amplify/team-provider-info.json'; then
