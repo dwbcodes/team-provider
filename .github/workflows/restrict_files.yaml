@@ -2,6 +2,7 @@ name: Check for team-provider-info.json changes on a specific branch.
 
 on:
   pull_request:
+    types: [labeled, unlabeled]
     branches:
       - qa
 
