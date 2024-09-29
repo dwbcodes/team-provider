@@ -16,11 +16,13 @@ jobs:
 
       - name: Check for modifications to team-provider-info.json
         run: |
-          # Fetch history for diff
-          git fetch --depth=2
+          BASE_BRANCH=${{ github.event.pull_request.base.ref }}
+          echo "Base branch is: $BASE_BRANCH"
+
+          git fetch origin $BASE_BRANCH
 
           # Check if file has been modified between the last 2 commits
-          if git diff --name-only HEAD~1 HEAD | grep 'amplify/team-provider-info.json'; then
+          if git diff --name-only origin/$BASE_BRANCH | grep 'amplify/team-provider-info.json'; then
             echo "team-provider-info.json has been modified."
             echo "file-modified=true" >> $GITHUB_ENV
           else
