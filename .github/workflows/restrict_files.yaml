@@ -40,7 +40,7 @@ jobs:
         run: |
           echo "Checking for specific labels on the pull request..."
           # Check for the 'allow-modifications' label directly
-          if [[ "${{ github.event.pull_request.labels }}" == *"allow-modifications"* ]]; then
+          if [[ "${{ github.event.pull_request.labels.name }}" == *"allow-modifications"* ]]; then
             echo "Label 'allow-modifications' is present."
             echo "allow-modifications=true" >> $GITHUB_ENV
           else
