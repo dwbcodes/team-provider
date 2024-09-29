@@ -1,7 +1,16 @@
-name: Check for team-provider-info.json updates.
+name: Check for team-provider-info.json changes on a specific branch.
 
 on:
   pull_request:
+    types:
+      - opened          # When a pull request is created
+      - reopened        # When a pull request is reopened
+      - synchronize     # When a new commit is pushed to the pull request
+      - labeled         # When a label is added to the pull request
+      - unlabeled       # When a label is removed from the pull request
+      - edited          # When the pull request title or description is edited
+    paths:
+      - 'amplify/team-provider-info.json'
     branches:
       - qa
 
@@ -12,44 +21,56 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 2  # Ensure enough history to compare the last 2 commits
+          fetch-depth: 0  # Fetch full history to access all branches
 
       - name: Check for modifications to team-provider-info.json
+        id: check_changes
         run: |
-          git fetch --depth=2
-          if git diff --name-only HEAD~1 HEAD | grep 'amplify/team-provider-info.json'; then
+          echo "Pull request branch is: ${{ github.head_ref }}"
+          echo "Base branch is: ${{ github.event.pull_request.base.ref }}"
+
+          git fetch origin ${{ github.event.pull_request.base.ref }}
+          git fetch origin ${{ github.head_ref }}
+          git checkout ${{ github.head_ref }}
+
+          # Check for modifications to the specific file
+          if git diff --name-only origin/${{ github.event.pull_request.base.ref }}...${{ github.head_ref }} | grep 'amplify/team-provider-info.json'; then
             echo "team-provider-info.json has been modified."
             echo "file-modified=true" >> $GITHUB_ENV
           else
             echo "team-provider-info.json has NOT been modified."
             echo "file-modified=false" >> $GITHUB_ENV
+          fi
 
-      - name: Check if specific label exists
-        id: label-check
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const labelName = "allow-team-provider";  // Specify the label name
-            const prLabels = await github.issues.listLabelsOnIssue({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number
-            });
-
-            const hasLabel = prLabels.data.some(label => label.name === labelName);
-            if (hasLabel) {
-              console.log(`Label "${labelName}" found on PR.`);
-              return { labelPresent: true };
-            } else {
-              console.log(`Label "${labelName}" not found on PR.`);
-              return { labelPresent: false };
-            }
-          result-encoding: json
-
-      - name: Fail if team-provider-info.json was modified and label is missing
-        if: env.file-modified == 'true' && steps.label-check.outputs.labelPresent == 'false'
+      - name: Check for specific label
+        id: check_label
+        if: env.file-modified == 'true'
         run: |
-          echo "Error: Modifications to team-provider-info.json are not allowed."
-          echo "If this was intentional add the label allow-team-provider."
-          exit 1
+          echo "Checking for specific labels on the pull request..."
+          allow_modifications=false
 
+          # Convert the labels JSON to a format we can work with
+          labels=$(echo '${{ toJson(github.event.pull_request.labels) }}' | jq -r '.[].name')
+          echo "Labels found: $labels"
+
+          # Check if 'allow-modifications' label is present
+          for label in $labels; do
+            if [[ "$label" == "allow-modifications" ]]; then
+              allow_modifications=true
+              break
+            fi
+          done
+
+          if [ "$allow_modifications" = true ]; then
+            echo "Label 'allow-modifications' is present."
+            echo "allow-modifications=true" >> $GITHUB_ENV
+          else
+            echo "Label 'allow-modifications' is NOT present."
+            echo "allow-modifications=false" >> $GITHUB_ENV
+          fi
+
+      - name: "Fail if team-provider-info.json was modified and no specific label is present"
+        if: env.file-modified == 'true' && env.allow-modifications == 'false'
+        run: |
+          echo "Error: Modifications to team-provider-info.json are not allowed without the 'allow-modifications' label."
+          exit 1
