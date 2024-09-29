@@ -3,8 +3,7 @@ name: Check for team-provider-info.json changes
 on:
   pull_request:
     branches:
-      - qa
-      - main  # Include any branches you want to monitor for PRs
+      - qa  # Specify the base branch for PRs
 
 jobs:
   check-files:
@@ -15,10 +14,10 @@ jobs:
         with:
           fetch-depth: 0  # Fetch full history
 
-      - name: Fetch branches
+      - name: Fetch base branch
         run: |
-          # Fetch all branches to ensure we can compare against origin/qa
-          git fetch origin
+          # Fetch the base branch (qa)
+          git fetch origin qa
 
       - name: Check for modifications to team-provider-info.json
         run: |
@@ -26,7 +25,7 @@ jobs:
           echo "Pull request branch is: ${{ github.head_ref }}"
           
           # Check if the team-provider-info.json has been modified
-          if git diff --name-only origin/qa..${{ github.head_ref }} | grep 'amplify/team-provider-info.json'; then
+          if git diff --name-only origin/qa...${{ github.head_ref }} | grep 'amplify/team-provider-info.json'; then
             echo "team-provider-info.json has been modified."
             echo "file-modified=true" >> $GITHUB_ENV
           else
