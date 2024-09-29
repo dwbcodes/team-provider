@@ -7,6 +7,7 @@ on:
     types:
       - labeled
       - unlabeled
+    workflow_dispatch:
 
 jobs:
   check-files:
