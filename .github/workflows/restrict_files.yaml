@@ -9,7 +9,6 @@ on:
       - labeled         # When a label is added to the pull request
       - unlabeled       # When a label is removed from the pull request
       - edited          # When the pull request title or description is edited
-
     paths:
       - 'amplify/team-provider-info.json'
     branches:
