@@ -55,4 +55,3 @@ jobs:
         run: |
           echo "Error: Modifications to team-provider-info.json are not allowed."
           exit 1
-
