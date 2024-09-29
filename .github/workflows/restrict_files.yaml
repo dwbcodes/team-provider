@@ -3,7 +3,7 @@ name: Check for team-provider-info.json changes
 on:
   pull_request:
     branches:
-      - qa  # Specify the base branch for PRs
+      - qa
 
 jobs:
   check-files:
@@ -18,20 +18,21 @@ jobs:
         run: |
           # Pull request branch
           echo "Pull request branch is: ${{ github.head_ref }}"
-          
-          # Fetch the base branch (qa) and the pull request branch
-          git fetch origin qa
+          echo "Base branch is: ${{ github.event.pull_request.base.ref }}"
+
+          # Fetch the base branch and the pull request branch
+          git fetch origin ${{ github.event.pull_request.base.ref }}
           git fetch origin ${{ github.head_ref }}
-          
+
           # Ensure the branch is checked out
           git checkout ${{ github.head_ref }}
-          
+
           # Show the status and the last few commits
           git status
-          git log --oneline --decorate -n 5
+          git log --oneline --decorate
 
           # Check if the team-provider-info.json has been modified
-          if git diff --name-only origin/qa...${{ github.head_ref }} | grep 'amplify/team-provider-info.json'; then
+          if git diff --name-only origin/${{ github.event.pull_request.base.ref }}...${{ github.head_ref }} | grep 'amplify/team-provider-info.json'; then
             echo "team-provider-info.json has been modified."
             echo "file-modified=true" >> $GITHUB_ENV
           else
