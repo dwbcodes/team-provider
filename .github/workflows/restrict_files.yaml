@@ -12,17 +12,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 2  # Ensure enough history to compare the last 2 commits
+          fetch-depth: 0
 
       - name: Check for modifications to team-provider-info.json
         run: |
-          BASE_BRANCH=${{ github.event.pull_request.base.ref }}
-          echo "Base branch is: $BASE_BRANCH"
-
-          git fetch origin $BASE_BRANCH
+          echo "Pull request branch is: ${{ github.head_ref }}"
 
           # Check if file has been modified between the last 2 commits
-          if git diff --name-only origin/$BASE_BRANCH | grep 'amplify/team-provider-info.json'; then
+          if git diff --name-only origin/${{ github.event.pull_request.base.ref }}..${{ github.head_ref }} | grep 'amplify/team-provider-info.json'; then
             echo "team-provider-info.json has been modified."
             echo "file-modified=true" >> $GITHUB_ENV
           else
