@@ -4,10 +4,7 @@ on:
   pull_request:
     paths:
       - 'amplify/team-provider-info.jsona'
-    types:
-      - labeled
-        unlabeled
-
+    types: [labeled]
 jobs:
   check-files:
     runs-on: ubuntu-latest
