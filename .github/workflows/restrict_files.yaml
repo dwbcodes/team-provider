@@ -37,11 +37,6 @@ jobs:
             echo "file-modified=false" >> $GITHUB_ENV
           fi
 
-      - name: Debugging Check PR Labels
-        run: |
-          echo "Labels on the pull request:"
-          echo "${{ toJson(github.event.pull_request.labels) }}"
-
       - name: Check for specific label
         id: check_label
         if: env.file-modified == 'true'  # Only run this step if the file was modified
@@ -59,6 +54,13 @@ jobs:
             echo "Label 'allow-modifications' is NOT present."
             echo "allow-modifications=false" >> $GITHUB_ENV
           fi
+
+      - name: Debugging: Print Labels
+        if: env.file-modified == 'true'  # Only run if the file was modified
+        run: |
+          echo "Labels on the PR:"
+          labels="${{ toJson(github.event.pull_request.labels) }}"
+          echo "$labels" | jq -r '.[].name'
 
       - name: Fail if team-provider-info.json was modified and no specific label is present
         if: env.file-modified == 'true' && env.allow-modifications == 'false'
