@@ -1,11 +1,7 @@
-name: Check for team-provider-info.json changes
+name: Check for team-provider-info.json updates.
 
 on:
-  push:
-    branches:
-      - main
   pull_request:
-    types: [opened, synchronize, reopened]
     branches:
       - qa
 
@@ -20,21 +16,40 @@ jobs:
 
       - name: Check for modifications to team-provider-info.json
         run: |
-          # Fetch history for diff
           git fetch --depth=2
-
-          # Check if file has been modified between the last 2 commits
           if git diff --name-only HEAD~1 HEAD | grep 'amplify/team-provider-info.json'; then
             echo "team-provider-info.json has been modified."
             echo "file-modified=true" >> $GITHUB_ENV
           else
             echo "team-provider-info.json has NOT been modified."
             echo "file-modified=false" >> $GITHUB_ENV
-          fi
 
-      - name: Fail if team-provider-info.json was modified
-        if: env.file-modified == 'true'
+      - name: Check if specific label exists
+        id: label-check
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const labelName = "allow-team-provider";  // Specify the label name
+            const prLabels = await github.issues.listLabelsOnIssue({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number
+            });
+
+            const hasLabel = prLabels.data.some(label => label.name === labelName);
+            if (hasLabel) {
+              console.log(`Label "${labelName}" found on PR.`);
+              return { labelPresent: true };
+            } else {
+              console.log(`Label "${labelName}" not found on PR.`);
+              return { labelPresent: false };
+            }
+          result-encoding: json
+
+      - name: Fail if team-provider-info.json was modified and label is missing
+        if: env.file-modified == 'true' && steps.label-check.outputs.labelPresent == 'false'
         run: |
           echo "Error: Modifications to team-provider-info.json are not allowed."
+          echo "If this was intentional add the label allow-team-provider."
           exit 1
 
