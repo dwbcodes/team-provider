@@ -4,6 +4,7 @@ on:
   pull_request:
     branches:
       - qa
+      - main  # Include any branches you want to monitor for PRs
 
 jobs:
   check-files:
@@ -12,14 +13,20 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 0  # Fetch full history
+
+      - name: Fetch branches
+        run: |
+          # Fetch all branches to ensure we can compare against origin/qa
+          git fetch origin
 
       - name: Check for modifications to team-provider-info.json
         run: |
+          # Pull request branch
           echo "Pull request branch is: ${{ github.head_ref }}"
-
-          # Check if file has been modified between the last 2 commits
-          if git diff --name-only origin/${{ github.event.pull_request.base.ref }}..${{ github.head_ref }} | grep 'amplify/team-provider-info.json'; then
+          
+          # Check if the team-provider-info.json has been modified
+          if git diff --name-only origin/qa..${{ github.head_ref }} | grep 'amplify/team-provider-info.json'; then
             echo "team-provider-info.json has been modified."
             echo "file-modified=true" >> $GITHUB_ENV
           else
@@ -27,31 +34,8 @@ jobs:
             echo "file-modified=false" >> $GITHUB_ENV
           fi
 
-      - name: Check if specific label exists
-        id: label-check
-        uses: actions/github-script@v6
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const labelName = "allow-modifications";  // Specify the label name
-            const prLabels = await github.rest.issues.listLabelsOnIssue({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number
-            });
-
-            const hasLabel = prLabels.data.some(label => label.name === labelName);
-            if (hasLabel) {
-              console.log(`Label "${labelName}" found on PR.`);
-              return { labelPresent: true };
-            } else {
-              console.log(`Label "${labelName}" not found on PR.`);
-              return { labelPresent: false };
-            }
-          result-encoding: json
-
-      - name: Fail if team-provider-info.json was modified and label is missing
-        if: env.file-modified == 'true' && steps.label-check.outputs.labelPresent == 'false'
+      - name: Fail if team-provider-info.json was modified
+        if: env.file-modified == 'true'
         run: |
           echo "Error: Modifications to team-provider-info.json are not allowed."
           exit 1
